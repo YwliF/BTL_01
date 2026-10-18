@@ -1,0 +1,15 @@
+# Core Optimization and SAT Solving Packages
+python-sat>=1.8.dev13
+ortools>=9.8.0
+gurobipy>=11.0.0
+cplex>=22.1.0.0
+docplex>=2.25.0
+
+# Numerical, Data Processing, and Visualization
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+scipy>=1.11.0
+
+# Testing and Code Quality
+pytest>=7.4.0

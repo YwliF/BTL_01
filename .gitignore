@@ -1,0 +1,46 @@
+# Python environment and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sensitive credentials & Gurobi licenses - STRICTLY EXCLUDED
+*.lic
+gurobi.lic
+.env
+.env.*
+tokens.json
+*secret*
+*credential*
+
+# TeX / LaTeX build artifacts (keep .tex, .bib, .cls, .sty, .bst, .pdf)
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+paper/*.run.xml
+paper/*-blx.bib
+
+# Temporary scratch
+scratch/
+tmp/

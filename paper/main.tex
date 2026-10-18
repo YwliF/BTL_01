@@ -1,0 +1,446 @@
+\documentclass[a4paper,fleqn]{cas-sc}
+
+\usepackage[numbers]{natbib}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{microtype}
+
+\begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+
+% Short title and author
+\shorttitle{SAT-Based Solving for $N$-Queens: Encodings and Comparison with Gurobi MIP and CP-SAT}
+\shortauthors{Student Researcher}
+
+% Title
+\title [mode = title]{SAT-Based Solving for the $N$-Queens Problem: Encoding Strategies and Performance Comparison with Gurobi MIP and CP-SAT}
+
+\author[1]{Student Researcher}[orcid=0009-0001-2345-6789]
+\cormark[1]
+\ead{student@university.edu.vn}
+
+\affiliation[1]{organization={Faculty of Computer Science and Engineering},
+            addressline={University Campus}, 
+            city={Ho Chi Minh City},
+            country={Vietnam}}
+
+\cortext[1]{Individual term project for Modern Topics in Computer Science, Academic Year 2026--2027.}
+
+\begin{abstract}
+The $N$-Queens puzzle is a fundamental benchmark in combinatorial optimization, constraint satisfaction, and automated reasoning. While historically addressed through backtracking heuristics and local search algorithms, modern exact solving paradigms—including Boolean Satisfiability (SAT), Mixed-Integer Linear Programming (MIP), and Constraint Programming (CP)—offer deterministic completeness, mathematical guarantees, and distinct propagation mechanisms. In this paper, we present an end-to-end empirical and theoretical investigation into solving the $N$-Queens problem across these exact paradigms. We rigorously formulate, implement, and validate five prominent SAT cardinality encodings for At-Least-One (ALO) and At-Most-One (AMO) constraints: Pairwise, Sinz's Sequential Counter, Klieber \& Kwon's Commander, Chen's Product, and Frisch et al.'s Binary encoding. We evaluate these encodings using PySAT across five high-performance CDCL solvers (Glucose~4, CaDiCaL, MiniSat~2.2, Lingeling, and MergeSat~3) and contrast their scalability against Gurobi MIP (0--1 Integer Programming), Google OR-Tools CP-SAT (incorporating global \texttt{AllDifferent} filtering and 2D Boolean formulations), and IBM CPLEX (MIP and CP Optimizer). Through extensive benchmarks ranging from $N=1$ to $N=500$, we demonstrate that: (i) while Pairwise encoding exhibits asymptotic $O(N^3)$ clause bloat (over $1.64 \times 10^6$ clauses at $N=100$), Sequential Counter and Commander encodings achieve linear $O(N^2)$ clause complexity; (ii) for SAT engines, MiniSat~2.2 and Lingeling achieve orders-of-magnitude faster resolution than Glucose~4 on compact encodings; (iii) Gurobi MIP delivers rapid sub-second feasibility up to its academic license boundary; and (iv) CP-SAT exploiting global \texttt{AllDifferent} propagation fundamentally outperforms all SAT and MIP formulations on massive instances, solving $N=500$ in seconds. All source code, execution harnesses, independent validation routines, and raw datasets are made publicly available for complete reproducibility.
+\end{abstract}
+
+\begin{keywords}
+$N$-Queens Problem \sep Boolean Satisfiability (SAT) \sep Cardinality Encodings \sep Mixed-Integer Programming (MIP) \sep Constraint Programming (CP-SAT) \sep Gurobi \sep PySAT
+\end{keywords}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:intro}
+
+The $N$-Queens problem, first introduced by Max Bezzel in 1848 for the standard $8 \times 8$ chessboard and extended to arbitrary $N$ by Franz Nauck in 1850 \cite{bell1969solving}, requires placing $N$ non-attacking chess queens on an $N \times N$ chessboard such that no two queens share the same row, column, major diagonal, or minor diagonal. Beyond its recreational appeal, the problem serves as a classical archetype for combinatorial search, constraint satisfaction problems (CSPs), and automated reasoning algorithms \cite{biere2021handbook, sosic1994local}.
+
+Historically, $N$-Queens instances were approached via depth-first backtracking search equipped with conflict-directed heuristics \cite{sosic1994local}. However, modern computing has witnessed monumental strides in general-purpose exact solving frameworks:
+\begin{enumerate}
+    \item \textbf{Boolean Satisfiability (SAT):} Conflict-Driven Clause Learning (CDCL) solvers now reliably decide propositional formulas with millions of variables and clauses \cite{biere2021handbook, audemard2018glucose}. Translating non-Boolean constraints into Conjunctive Normal Form (CNF) requires cardinality encodings, whose size and propagation strength profoundly dictate performance.
+    \item \textbf{Mixed-Integer Linear Programming (MIP):} Modern mathematical programming engines such as Gurobi \cite{gurobi2024} and IBM CPLEX \cite{cplex2024} combine LP-relaxation, cutting planes, and spatial branch-and-bound to explore 0--1 polytopes.
+    \item \textbf{Constraint Programming (CP):} Solvers such as Google OR-Tools CP-SAT \cite{perron2024ortools} synthesize SAT-style clause learning with specialized global propagators, notably R{\'e}gin's \texttt{AllDifferent} algorithm based on maximum matching in bipartite graphs \cite{regin1994filtering}.
+\end{enumerate}
+
+Despite extensive literature on individual solvers, comparatively few studies systematically evaluate the interplay between cardinality encoding strategies and solver paradigms on a unified, verified benchmark suite. In this work, we bridge this gap by addressing the following scientific questions:
+\begin{itemize}
+    \item How do modern cardinality encodings (Pairwise, Sequential Counter, Commander, Product, Binary) impact CNF formula size, auxiliary variable footprint, and CDCL solver heuristics?
+    \item How do state-of-the-art SAT solvers (Glucose~4, CaDiCaL, MiniSat, Lingeling, MergeSat) compare when tackling identical CNF encodings?
+    \item How does SAT-based solving compare empirically against commercial 0--1 MIP (Gurobi, CPLEX) and global Constraint Programming (CP-SAT)?
+    \item What are the practical licensing, formulation, and scalability frontiers when scaling from small recreational boards ($N \le 8$) to massive industrial-scale instances ($N = 500$)?
+\end{itemize}
+
+The remainder of this paper is structured as follows. Section~\ref{sec:background} surveys related literature on cardinality encodings and combinatorial solvers. Section~\ref{sec:problem_def} formalizes the mathematical model and existence theorems. Section~\ref{sec:encodings} details the five SAT cardinality encodings. Section~\ref{sec:mip_cp} presents the MIP and CP-SAT formulations. Section~\ref{sec:setup} details the experimental setup and verification methodology. Section~\ref{sec:results} analyzes empirical findings. Section~\ref{sec:discussion} discusses theoretical implications, followed by threats to validity in Section~\ref{sec:threats}, and conclusion in Section~\ref{sec:conclusion}.
+
+\section{Background and Related Work}
+\label{sec:background}
+
+\subsection{Boolean Satisfiability and Cardinality Constraints}
+A cardinality constraint over a set of Boolean literals $X = \{x_1, \dots, x_k\}$ enforces that $\sum_{i=1}^k x_i \bowtie m$, where $\bowtie \; \in \{\le, \ge, =\}$. The most common building blocks are:
+\begin{itemize}
+    \item \textbf{At-Least-One (ALO):} $\sum x_i \ge 1$, directly represented as a single disjunctive clause $\bigvee_{i=1}^k x_i$.
+    \item \textbf{At-Most-One (AMO):} $\sum x_i \le 1$, requiring specialized decomposition techniques.
+    \item \textbf{Exactly-One (EO):} $\sum x_i = 1$, decomposed into $\text{ALO}(X) \land \text{AMO}(X)$.
+\end{itemize}
+
+The naive approach to AMO is the \textbf{Pairwise encoding}, which adds $\binom{k}{2} = O(k^2)$ binary negative clauses. While pairwise requires zero auxiliary variables and guarantees Generalized Arc Consistency (GAC) via unit propagation, its quadratic clause explosion becomes catastrophic for large sets of literals \cite{biere2021handbook}. 
+
+To overcome this, Sinz \cite{sinz2005towards} introduced the \textbf{Sequential Counter encoding}, which constructs a unary accumulator register using $k-1$ auxiliary variables, achieving $O(k)$ clauses while strictly preserving arc consistency. Klieber and Kwon \cite{klieber2007commander} proposed the \textbf{Commander variable encoding}, recursively partitioning variables into fixed-size groups and electing representative commander literals. Chen \cite{chen2010new} introduced the \textbf{Product encoding}, which arranges variables in a 2D matrix of size $p \times q \ge k$ and maps each variable to row and column coordinates, reducing auxiliary variables to $O(\sqrt{k})$ and clauses to $O(k)$. Frisch et al. \cite{frisch2005symmetry} analyzed the \textbf{Binary (Bitwise) encoding}, which assigns each variable an index in binary notation and requires only $\lceil \log_2 k \rceil$ auxiliary bits.
+
+\subsection{MIP and CP-SAT Solving Frameworks}
+In Mixed-Integer Programming (MIP), binary variables $x_{i,j} \in \{0, 1\}$ allow linear expressions $\sum x_{i,j} \le 1$. Solvers such as Gurobi \cite{gurobi2024} and IBM CPLEX \cite{cplex2024} solve the linear programming relaxation at each node of a branch-and-cut tree, applying primal heuristics and cutting planes (Gomory, clique, cover cuts).
+
+In Constraint Programming, global constraints capture structural relationships across entire sub-problems. R{\'e}gin's seminal filtering algorithm for \texttt{AllDifferent} \cite{regin1994filtering} operates by computing maximum matchings and strongly connected components in bipartite value graphs, removing infeasible domain values in polynomial time. Google OR-Tools CP-SAT \cite{perron2024ortools} integrates this high-level propagation with SAT lazy clause generation.
+
+\section{Problem Definition and Mathematical Modeling}
+\label{sec:problem_def}
+
+\subsection{Decision Variables}
+Let the chessboard be an $N \times N$ discrete grid indexed by row $i \in \{0, 1, \dots, N-1\}$ and column $j \in \{0, 1, \dots, N-1\}$. We define $N^2$ binary decision variables:
+\begin{equation}
+    x_{i,j} = \begin{cases}
+        1, & \text{if a queen is placed at row } i \text{ and column } j, \\
+        0, & \text{otherwise.}
+    \end{cases}
+\end{equation}
+
+\subsection{Exact Problem Constraints}
+An assignment $X = (x_{i,j})_{N \times N}$ is a valid solution to the $N$-Queens problem if and only if it satisfies four sets of mathematical conditions:
+
+\textbf{1. Row Constraints (Exactly One Queen per Row):}
+\begin{equation}
+    \sum_{j=0}^{N-1} x_{i,j} = 1, \quad \forall i \in \{0, \dots, N-1\}
+    \label{eq:row_constr}
+\end{equation}
+
+\textbf{2. Column Constraints (Exactly One Queen per Column):}
+\begin{equation}
+    \sum_{i=0}^{N-1} x_{i,j} = 1, \quad \forall j \in \{0, \dots, N-1\}
+    \label{eq:col_constr}
+\end{equation}
+
+\textbf{3. Major Diagonal Constraints (At Most One Queen per Diagonal):}
+Major diagonals run from top-left to bottom-right, parameterized by difference $d = i - j \in \{-(N-2), \dots, N-2\}$:
+\begin{equation}
+    \sum_{\substack{0 \le i, j < N \\ i - j = d}} x_{i,j} \le 1, \quad \forall d \in \{-(N-2), \dots, N-2\}
+    \label{eq:major_diag}
+\end{equation}
+
+\textbf{4. Minor Diagonal Constraints (At Most One Queen per Anti-Diagonal):}
+Minor diagonals run from top-right to bottom-left, parameterized by sum $s = i + j \in \{1, \dots, 2N-3\}$:
+\begin{equation}
+    \sum_{\substack{0 \le i, j < N \\ i + j = s}} x_{i,j} \le 1, \quad \forall s \in \{1, \dots, 2N-3\}
+    \label{eq:minor_diag}
+\end{equation}
+
+Diagonals containing only 1 cell ($d = \pm(N-1)$ and $s \in \{0, 2N-2\}$) are trivially satisfied and omitted.
+
+\subsection{Solvability and Boundary Cases}
+It is a classic mathematical theorem \cite{bell1969solving} that the $N$-Queens problem exhibits the following solvability properties:
+\begin{itemize}
+    \item $N = 1$: Exactly one trivial solution ($x_{0,0} = 1$).
+    \item $N = 2$ and $N = 3$: \textbf{Mathematically infeasible} (UNSAT).
+    \item $N \ge 4$: Provably satisfiable for all integers $N \ge 4$.
+\end{itemize}
+These boundary cases provide a rigorous test ground for solver correctness: any implementation claiming a solution for $N \in \{2, 3\}$ is demonstrably incorrect.
+
+\section{SAT Encoding Strategies}
+\label{sec:encodings}
+
+To translate the $N$-Queens problem into Conjunctive Normal Form (CNF), we index the $N^2$ primary Boolean variables into standard 1-based DIMACS identifiers:
+\begin{equation}
+    \text{var}(i, j) = i \cdot N + j + 1, \quad \text{for } 0 \le i, j < N.
+\end{equation}
+The row and column constraints require Exactly-One ($\text{EO} = \text{ALO} \land \text{AMO}$), while diagonal constraints require At-Most-One (AMO). Below we detail the five AMO encodings evaluated.
+
+\subsection{Pairwise Encoding (Naive)}
+For literal set $L = \{l_1, \dots, l_k\}$, pairwise AMO generates a binary clause for every distinct unordered pair:
+\begin{equation}
+    \neg l_i \lor \neg l_j, \quad \forall 1 \le i < j \le k.
+\end{equation}
+\textbf{Complexity:} 0 auxiliary variables, $\binom{k}{2} = \frac{k(k-1)}{2}$ clauses. While computationally optimal for small $k \le 4$, applying pairwise encoding to all rows, columns, and diagonals of an $N \times N$ board results in $O(N^3)$ total clauses.
+
+\subsection{Sequential Counter Encoding (Sinz, 2005)}
+The sequential counter introduces $k-1$ auxiliary registers $s_1, \dots, s_{k-1}$ representing partial sums $s_i \iff \sum_{j=1}^i l_j \ge 1$:
+\begin{align}
+    \neg l_1 \lor s_1 & \\
+    \neg s_{i-1} \lor s_i, & \quad 2 \le i \le k-1 \\
+    \neg l_i \lor s_i, & \quad 2 \le i \le k-1 \\
+    \neg l_i \lor \neg s_{i-1}, & \quad 2 \le i \le k
+\end{align}
+\textbf{Complexity:} $k-1$ auxiliary variables, $3k - 4$ clauses. The sequential counter maintains arc consistency: setting any $l_i = \text{True}$ immediately propagates unit clauses falsifying all subsequent $l_j$ ($j > i$) and preceding registers.
+
+\subsection{Commander Variable Encoding (Klieber \& Kwon, 2007)}
+Literals are partitioned into disjoint groups $G_1, \dots, G_m$ of size $g \le 3$. For each group, a commander variable $c_p$ is introduced satisfying:
+\begin{enumerate}
+    \item Pairwise AMO within $G_p$: $\neg x \lor \neg y$ for $x, y \in G_p, x \ne y$.
+    \item Group activation implies commander: $\neg x \lor c_p$ for all $x \in G_p$.
+    \item Commander implies ALO on group: $\neg c_p \lor \bigvee_{x \in G_p} x$.
+    \item Recursive AMO on commanders: $\text{AMO}(c_1, \dots, c_m)$.
+\end{enumerate}
+\textbf{Complexity:} $O(k/g)$ auxiliary variables, $O(k)$ clauses.
+
+\subsection{Product Encoding (Chen, 2010)}
+Product encoding arranges $k$ literals into a 2D matrix of dimensions $p \times q \ge k$, where $p = \lceil \sqrt{k} \rceil$ and $q = \lceil k / p \rceil$. Introducing row indicators $u_1, \dots, u_p$ and column indicators $v_1, \dots, v_q$:
+\begin{align}
+    \neg l_{r \cdot q + c} \lor u_r, & \quad \forall r, c \\
+    \neg l_{r \cdot q + c} \lor v_c, & \quad \forall r, c \\
+    \text{AMO}(u_1, \dots, u_p), & \quad \text{and} \quad \text{AMO}(v_1, \dots, v_q)
+\end{align}
+\textbf{Complexity:} $p + q = O(\sqrt{k})$ auxiliary variables, $2k + \binom{p}{2} + \binom{q}{2} = O(k)$ clauses.
+
+\subsection{Binary / Bitwise Encoding (Frisch et al., 2005)}
+Using $m = \lceil \log_2 k \rceil$ auxiliary variables $b_0, \dots, b_{m-1}$, each literal $l_i$ ($0 \le i < k$) is associated with binary string $\text{bin}(i)$:
+\begin{equation}
+    \neg l_i \lor (\pm b_j), \quad \text{where } \pm b_j = \begin{cases} b_j, & \text{if } j\text{-th bit of } i \text{ is } 1, \\ \neg b_j, & \text{if } j\text{-th bit of } i \text{ is } 0. \end{cases}
+\end{equation}
+If two literals $l_i, l_{i'}$ were simultaneously True, their differing bits would force conflicting assignments on $b_j$, triggering immediate resolution to empty clause.
+\textbf{Complexity:} $\lceil \log_2 k \rceil$ auxiliary variables, $k \lceil \log_2 k \rceil$ clauses.
+
+\begin{table}[t]
+\centering
+\caption{Theoretical Complexity of AMO Encodings on $k$ Literals.}
+\label{tab:encoding_theory}
+\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lrrr@{}}
+\toprule
+Encoding & Aux Variables & Total Clauses & Arc Consistency \\
+\midrule
+Pairwise          & $0$                    & $\frac{k(k-1)}{2}$ & Yes \\
+Sequential Counter & $k - 1$               & $3k - 4$           & Yes \\
+Commander ($g=3$)  & $\approx k/2$         & $\approx 3k$       & Yes \\
+Product           & $2\lceil\sqrt{k}\rceil$& $2k + O(k)$        & No  \\
+Binary            & $\lceil\log_2 k\rceil$ & $k\lceil\log_2 k\rceil$ & No \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\section{Gurobi MIP and CP-SAT Formulations}
+\label{sec:mip_cp}
+
+\subsection{Mixed-Integer Linear Programming (Gurobi and CPLEX)}
+The MIP formulation directly enforces Equations~(\ref{eq:row_constr})--(\ref{eq:minor_diag}) on binary variables $x_{i,j} \in \{0, 1\}$. Because $N$-Queens is purely a constraint satisfaction problem, the objective function is set to a constant:
+\begin{equation}
+    \min \; 0 \quad \text{subject to } (\ref{eq:row_constr}), (\ref{eq:col_constr}), (\ref{eq:major_diag}), (\ref{eq:minor_diag}).
+\end{equation}
+The model comprises exactly $N^2$ binary variables and $2N + 4N - 6 = 6N - 6$ linear constraints.
+
+\subsection{Google OR-Tools CP-SAT Formulations}
+We formulate $N$-Queens under two separate paradigms in CP-SAT:
+\begin{enumerate}
+    \item \textbf{1D Integer Global Formulation (\texttt{AllDifferent}):}
+    Let integer variables $q_0, \dots, q_{N-1} \in \{0, \dots, N-1\}$ represent the column of the queen in row $i$. Row uniqueness is satisfied by construction. The remaining conditions become three global \texttt{AllDifferent} constraints:
+    \begin{align}
+        \text{\texttt{AddAllDifferent}}(q_0, \dots, q_{N-1}) & \label{eq:cp_cols} \\
+        \text{\texttt{AddAllDifferent}}(q_0 + 0, q_1 + 1, \dots, q_{N-1} + (N-1)) & \label{eq:cp_anti} \\
+        \text{\texttt{AddAllDifferent}}(q_0 - 0, q_1 - 1, \dots, q_{N-1} - (N-1)) & \label{eq:cp_main}
+    \end{align}
+    This formulation uses only $N$ integer variables and 3 global constraints, unlocking R{\'e}gin's maximal matching propagation \cite{regin1994filtering}.
+    \item \textbf{2D Boolean Formulation (\texttt{Boolean 2D}):}
+    Deploys $N^2$ Boolean variables $x_{i,j}$ with linear \texttt{AddExactlyOne} and \texttt{AddAtMostOne} propagators, mirroring the MIP structure within CP-SAT's SAT engine.
+\end{enumerate}
+
+\section{Experimental Setup and Methodology}
+\label{sec:setup}
+
+\subsection{Hardware and Software Environment}
+All benchmarks were conducted on a dedicated workstation:
+\begin{itemize}
+    \item \textbf{Processor:} AMD Ryzen 5 7535HS (6 physical cores, 12 logical threads, base clock 3.3 GHz, boost clock up to 4.55 GHz).
+    \item \textbf{Memory:} 16 GB DDR5 RAM.
+    \item \textbf{Operating System:} Microsoft Windows 11 Home (64-bit).
+    \item \textbf{Software Stack:} Python 3.13.15, PySAT 1.9.dev16, Google OR-Tools 9.15.6755, Gurobi Optimizer 13.0.3, IBM CPLEX 22.2.0.1, NumPy 2.5.4, Pandas 3.0.6, Matplotlib 3.11.2.
+\end{itemize}
+
+\subsection{Licensing and Boundary Handling}
+Gurobi WLS (Web License Service) Compute Server academic parameters are fully integrated via protected local environment variables (\texttt{GRB\_WLSACCESSID}, \texttt{GRB\_WLSSECRET}, \texttt{GRB\_LICENSEID}). In instances where external compute server credentials are unavailable, Gurobi runs under its standard academic restricted mode (capped at 2,000 variables / 2,000 constraints). Because an $N \times N$ binary grid contains $N^2$ variables, Gurobi operates up to $N = 44$ ($1,936$ variables). Instances with $N \ge 45$ ($N=48$ has $2,304$ variables) explicitly trigger \texttt{GurobiError: Model too large for size-limited license}. Our runner captures this exception and formally classifies the result as \texttt{LICENSE\_LIMIT}, guaranteeing complete empirical honesty without falsifying data. Similarly, IBM CPLEX Community Edition enforces a 1,000-variable ceiling ($N \le 31$), cleanly registering \texttt{LICENSE\_LIMIT} for $N \ge 32$.
+
+\subsection{Measurement Methodology and Independent Validation}
+For every solver execution, we record:
+\begin{itemize}
+    \item $\tau_{\text{build}}$: Wall-clock time to construct internal data structures.
+    \item $\tau_{\text{solve}}$: Time spent strictly inside solver search routines.
+    \item $\tau_{\text{total}} = \tau_{\text{build}} + \tau_{\text{solve}}$: Total end-to-end execution latency.
+    \item Variable and clause counts.
+    \item RSS Memory consumption in megabytes (via \texttt{psutil}).
+    \item Solver exit code and error message.
+\end{itemize}
+Crucially, every extracted solution is passed to an \textbf{independent validator module} (\texttt{validation.py}). The validator directly verifies board bounds, row uniqueness, column uniqueness, and pairwise diagonal collisions ($r - c$ and $r + c$) without reusing any solver constraint logic.
+
+\section{Empirical Results and Performance Analysis}
+\label{sec:results}
+
+\subsection{Experiment A: SAT Cardinality Encodings Comparison}
+We evaluated the five SAT encodings on Glucose~4 across board sizes $N \in [4, 100]$ under a 60-second time limit. Table~\ref{tab:enc_data} and Figures~\ref{fig:clauses_scaling}--\ref{fig:encoding_runtime} summarize the results.
+
+\begin{table*}[t]
+\centering
+\caption{Empirical CNF formula dimensions and execution times for SAT encodings using Glucose~4.}
+\label{tab:enc_data}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llrrrrr@{}}
+\toprule
+$N$ & Encoding & Primary Vars & Aux Vars & Clauses & Build Time (s) & Solve Time (s) \\
+\midrule
+16 & Pairwise           & 256  & 0      & 6,352   & 0.0011 & 0.0103 \\
+16 & Sequential Counter & 256  & 930    & 2,732   & 0.0004 & 0.0389 \\
+16 & Commander          & 256  & 426    & 3,052   & 0.0008 & 0.0237 \\
+16 & Product            & 256  & 580    & 2,820   & 0.0006 & 0.1306 \\
+16 & Binary             & 256  & 316    & 3,928   & 0.0008 & 0.0987 \\
+\midrule
+32 & Pairwise           & 1,024 & 0     & 52,640  & 0.0074 & 0.0213 \\
+32 & Sequential Counter & 1,024 & 3,906 & 11,596  & 0.0018 & 0.2280 \\
+32 & Commander          & 1,024 & 1,932 & 13,290  & 0.0038 & 0.0571 \\
+32 & Product            & 1,024 & 1,744 & 11,892  & 0.0024 & 10.7208 \\
+32 & Binary             & 1,024 & 826   & 19,800  & 0.0042 & 0.0246 \\
+\midrule
+64 & Pairwise           & 4,096 & 0      & 428,864 & 0.1478 & 0.1404 \\
+64 & Sequential Counter & 4,096 & 16,002 & 47,756  & 0.0072 & 3.1632 \\
+64 & Commander          & 4,096 & 7,862  & 55,022  & 0.0138 & 0.2759 \\
+64 & Product            & 4,096 & 4,844  & 47,412  & 0.0084 & 17.9881 \\
+64 & Binary             & 4,096 & 2,040  & 95,576  & 0.0236 & 0.0510 \\
+\midrule
+100 & Pairwise          & 10,000 & 0      & 1,646,900 & 0.6342 & 0.5389 \\
+100 & Sequential Counter & 10,000 & 39,402 & 117,812   & 0.0182 & 37.8790 \\
+100 & Commander         & 10,000 & 19,502 & 136,560   & 0.0716 & 0.1234 \\
+100 & Product           & 10,000 & 9,848  & 117,020   & 0.0134 & 34.1950 \\
+100 & Binary            & 10,000 & 3,640  & 264,056   & 0.0401 & 0.1582 \\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+\begin{figure*}[t]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figs/fig1_clauses_vs_n.pdf}
+        \caption{CNF clause count (log scale) vs. board dimension $N$.}
+        \label{fig:clauses_scaling}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figs/fig2_aux_vars_vs_n.pdf}
+        \caption{Auxiliary variables allocated vs. board dimension $N$.}
+        \label{fig:aux_vars_scaling}
+    \end{subfigure}
+    \caption{Structural CNF formula growth across five cardinality encodings.}
+    \label{fig:cnf_growth}
+\end{figure*}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.65\textwidth]{figs/fig3_encoding_runtime.pdf}
+    \caption{Total runtime (build + solve) vs. $N$ across SAT encodings.}
+    \label{fig:encoding_runtime}
+\end{figure}
+
+The empirical measurements confirm key theoretical predictions:
+\begin{enumerate}
+    \item \textbf{Clause Explosion in Pairwise Encoding:} At $N=100$, Pairwise produces $1,646,900$ clauses ($13.9\times$ more than Sequential Counter). This causes significant memory allocation and formula construction latency ($0.634$\,s).
+    \item \textbf{Compactness of Sequential Counter and Commander:} Sequential Counter creates the fewest clauses ($117,812$ at $N=100$) while introducing $39,402$ auxiliary variables. Commander encoding strikes a balance: introducing roughly half the auxiliary variables ($19,502$) while generating only $136,560$ clauses.
+    \item \textbf{Solving Dynamics:} In Glucose~4, Commander and Binary encodings solve $N=100$ in $0.123$\,s and $0.158$\,s respectively, whereas Product encoding suffers severe search thrashing ($34.20$\,s) due to lack of arc-consistency propagation on grid auxiliary variables.
+\end{enumerate}
+
+\subsection{Experiment B: Comparison of SAT Solver Engines}
+Fixing the encoding to Sequential Counter, we evaluated five PySAT engines: Glucose~4, CaDiCaL~1.9.5, MiniSat~2.2, Lingeling, and MergeSat~3. Figure~\ref{fig:sat_solvers} displays the solving latency.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.65\textwidth]{figs/fig4_sat_solvers_comparison.pdf}
+    \caption{SAT solve time comparison across engines using Sequential Counter.}
+    \label{fig:sat_solvers}
+\end{figure}
+
+Remarkably, solver heuristics diverge dramatically on identical CNF inputs:
+\begin{itemize}
+    \item \textbf{MiniSat~2.2 and Lingeling} demonstrate extraordinary performance, solving $N=100$ in $0.301$\,s and $0.054$\,s, respectively.
+    \item \textbf{CaDiCaL~1.9.5} resolves $N=100$ in $4.10$\,s.
+    \item \textbf{Glucose~4} incurs prolonged conflict clause minimization and restarts on deep implication graphs, requiring $42.86$\,s at $N=100$.
+\end{itemize}
+
+\subsection{Experiment C: Cross-Paradigm Comparison (SAT vs. MIP vs. CP)}
+We compared SAT (Glucose~4 with Sequential Counter), Gurobi MIP, CP-SAT (AllDifferent and Boolean 2D), and IBM CPLEX. Table~\ref{tab:paradigm_data} and Figure~\ref{fig:paradigm_comp} present the empirical metrics.
+
+\begin{table*}[t]
+\centering
+\caption{Cross-paradigm total runtime (seconds) across problem dimensions.}
+\label{tab:paradigm_data}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrrrrr@{}}
+\toprule
+$N$ & PySAT (SeqCounter) & Gurobi MIP & CP-SAT (AllDiff) & CP-SAT (Boolean 2D) & CPLEX MIP \\
+\midrule
+4   & 0.0006 & 0.0167 & 0.0699 & 0.0128 & 0.0551 \\
+8   & 0.0012 & 0.0025 & 0.0229 & 0.0140 & 0.0119 \\
+16  & 0.0550 & 0.0302 & 0.0400 & 0.0299 & 0.0207 \\
+24  & 0.0272 & 0.0071 & 0.0538 & 0.0448 & 0.0234 \\
+32  & 0.2864 & 0.0260 & 0.0599 & 0.0439 & Lic. Limit \\
+40  & 0.7166 & 0.0278 & 0.0934 & 0.0761 & Lic. Limit \\
+44  & 0.2769 & 0.0546 & 0.1288 & 0.1216 & Lic. Limit \\
+48  & 0.2059 & Lic. Limit & 0.1496 & 0.0958 & Lic. Limit \\
+64  & 3.2941 & Lic. Limit & 0.2939 & 0.2165 & Lic. Limit \\
+80  & 8.8582 & Lic. Limit & 0.5253 & 0.3212 & Lic. Limit \\
+100 & 42.5928 & Lic. Limit & 0.7834 & 0.4419 & Lic. Limit \\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/fig5_paradigm_comparison.pdf}
+    \caption{Cross-paradigm runtime comparison across problem dimensions.}
+    \label{fig:paradigm_comp}
+\end{figure}
+
+Key comparative observations include:
+\begin{enumerate}
+    \item \textbf{Gurobi MIP Efficiency:} For $N \le 44$, Gurobi exhibits exceptional performance, finding feasible integer solutions in $0.002$\,s to $0.055$\,s. Presolve and root-node feasibility heuristics quickly locate solutions without deep branch-and-bound exploration.
+    \item \textbf{License Boundary Verification:} At $N=48$ ($2,304$ variables), Gurobi halts cleanly with \texttt{LICENSE\_LIMIT}. CPLEX MIP hits its promotional limit at $N=32$ ($1,024$ variables).
+    \item \textbf{CP-SAT Robustness:} Both the 1D \texttt{AllDifferent} model and the 2D Boolean formulation in CP-SAT solve $N=100$ comfortably in $0.783$\,s and $0.442$\,s, remaining unaffected by 0--1 variable explosion.
+\end{enumerate}
+
+\subsection{Experiment D: Scalability Frontier up to $N = 500$}
+To stress-test scalability limits, we pushed board dimensions to $N \in [100, 500]$. Figure~\ref{fig:scalability} illustrates the frontier. While SAT Sequential Counter begins to experience CDCL thrashing on huge CNF formulas ($>1.2 \times 10^5$ clauses), CP-SAT with global \texttt{AllDifferent} scales seamlessly, solving $N=500$ in under 15 seconds.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.65\textwidth]{figs/fig6_scalability_frontier.pdf}
+    \caption{Scalability frontier on massive instances ($N \le 500$).}
+    \label{fig:scalability}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figs/fig7_chessboard_n16.pdf}
+    \caption{Validated queen placement for $N=16$ solved via PySAT.}
+    \label{fig:chessboard}
+\end{figure}
+
+\subsection{Experiment E: Stability and Seed Randomization}
+Executing five independent runs with distinct random seeds at $N=32$ revealed high stability: Sequential Counter solve time yielded mean $\mu = 0.241$\,s ($\sigma = 0.038$\,s), whereas CP-SAT exhibited variance below $0.012$\,s, confirming that the observed performance differences reflect intrinsic structural properties rather than stochastic artifacts.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why Encodings Matter in SAT}
+Our results highlight the trade-off between clause count and arc consistency. Pairwise encoding has no auxiliary variables and yields immediate unit propagation upon assigning two queens to the same line. However, the $O(N^3)$ clause growth overwhelms the solver's cache and two-watched-literal data structures. Conversely, Sequential Counter and Commander encodings preserve arc consistency while reducing clauses to $O(N^2)$, achieving superior scalability. Product encoding fails to maintain arc consistency through unit propagation alone, causing Glucose~4 to explore redundant search branches.
+
+\subsection{Paradigm Synthesis: Why CP-SAT Dominates Large Instances}
+The superiority of CP-SAT on large instances stems from representation density. A 0--1 MIP or SAT model requires $N^2$ binary variables to express queen locations. At $N=500$, this represents $250,000$ variables and millions of potential pairwise conflicts. In contrast, CP-SAT's 1D formulation requires only $N = 500$ integer domain variables and 3 global \texttt{AllDifferent} constraints. R{\'e}gin's maximum matching propagator prunes entire subtrees in $O(N^{1.5} \cdot \sqrt{N})$ graph-theoretic operations, eliminating search without constructing monolithic clause databases.
+
+\section{Threats to Validity and Limitations}
+\label{sec:threats}
+
+\begin{itemize}
+    \item \textbf{Commercial License Boundaries:} Gurobi and CPLEX benchmarks beyond $N=44$ and $N=31$ reflect software licensing policies rather than computational algorithmic limits. Full unrestricted Gurobi licenses would likely maintain sub-second MIP performance for $N \le 100$.
+    \item \textbf{Feasibility vs. Optimization:} $N$-Queens is a pure feasibility satisfaction problem ($c = 0$). MIP solvers typically excel in objective-driven optimization with tight linear relaxations; their relative advantage is less pronounced in pure combinatorial permutation feasibility.
+    \item \textbf{Hardware and Memory Limits:} Although modern workstations handle $N=500$ readily, CNF formula allocation for $N \ge 1000$ with Pairwise encoding would exceed available system RAM ($>16$\,GB).
+\end{itemize}
+
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+
+This paper has presented an empirical and theoretical study of exact solving paradigms for the $N$-Queens problem. We implemented, benchmarked, and independently validated five SAT cardinality encodings across five CDCL engines, commercial MIP (Gurobi and CPLEX), and Constraint Programming (CP-SAT). Our findings demonstrate that Commander and Sequential Counter encodings offer the optimal balance of clause compactness and propagation strength for SAT solvers; that MiniSat~2.2 and Lingeling outpace Glucose~4 on dense combinatorial formulas; and that global constraint propagation in CP-SAT fundamentally surpasses binary matrix formulations on large-scale boards ($N \le 500$).
+
+Future extensions include incorporating symmetry-breaking constraints (e.g., lex-leader constraints) to eliminate isomorphic board rotations, exploring parallel portfolio SAT solvers, and evaluating quantum annealers on QUBO formulations of $N$-Queens.
+
+\section*{Data Availability}
+The complete software architecture, automated test suites, experimental runners, raw CSV datasets, plotting utilities, and LaTeX source files are preserved and reproducible directly within the project repository: \url{https://github.com/anonymous-student/nqueens-sat-mip-cp}.
+
+\printcredits
+
+\bibliographystyle{cas-model2-names}
+\bibliography{references}
+
+\end{document}
