@@ -10,61 +10,128 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{subcaption}
+\usepackage{fancyhdr}
 \usepackage{url}
 \usepackage{microtype}
 \usepackage{hyperref}
+\usepackage{lastpage}
+\usepackage{helvet}
+\usepackage[margin=1.4cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{array}
 
 \begin{document}
+
+\pagestyle{plain}
+\fancyhf{}
+\fancyfoot[C]{\thepage\ / \pageref{LastPage}}
+
 \let\WriteBookmarks\relax
 \def\floatpagepagefraction{1}
 \def\textpagefraction{.001}
 
-\shorttitle{SAT-Based $N$-Queens: Encodings, MIP, and CP}
-\shortauthors{Nguyen}
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\arraystretch}{1.4}
+\setlength{\parindent}{0pt}
+\setlength{\tabcolsep}{4pt}
 
-\title [mode = title]{SAT-Based Solving for the $N$-Queens Problem: Encoding Strategies, Cross-Paradigm Exact Solvers, and Reproducible Experimental Results}
+\definecolor{TitleBlue}{RGB}{53,56,108}
+\definecolor{RowGray}{RGB}{240,240,240}
+\definecolor{TextBlue}{RGB}{31,63,139}
+\definecolor{BorderGray}{RGB}{195,195,195}
 
-\tnotemark[1]
-\tnotetext[1]{Term report (B{\`a}o c{\'a}o BTL s{\^o}~1), course \textit{Modern Topics in Computer Science}, Academic Year 2026--2027.
-The instructor encourages students to design the structure and content of the BTL report so that they exhibit the actual implementation and measured outcomes.
-This manuscript therefore follows the Elsevier CAS single-column template used as the official sample, but organises sections around artefacts that exist in the author's repository rather than copying a fixed outline.}
+\hypersetup{
+    colorlinks=true,
+    urlcolor=TextBlue,
+    linkcolor=TextBlue
+}
 
-\author[1]{Nguyen Viet Nhuong}
-\cormark[1]
-\ead[url]{https://github.com/YwliF/BTL_01}
-\credit{Conceptualization, methodology, software, experiments, validation, and writing}
-\affiliation[1]{organization={Faculty of Computer Science and Engineering},
-            city={Ho Chi Minh City},
-            country={Vietnam}}
+\arrayrulecolor{BorderGray}
 
-\cortext[1]{Corresponding author.
-Public repository of source code and experimental artefacts: \url{https://github.com/YwliF/BTL_01}.}
+\thispagestyle{empty}
 
-\begin{abstract}
-The $N$-Queens problem asks for a placement of $N$ queens on an $N\times N$ board such that no two queens share a row, column, or diagonal.
-Although a solution exists for every $N\ge 4$, the problem remains a demanding laboratory for exact combinatorial solvers: encodings grow rapidly, search heuristics interact with formula structure, and licence restrictions on commercial MIP engines change what can be measured on a student workstation.
-This report presents a complete, independently implemented exact-solving pipeline that translates $N$-Queens into Boolean Satisfiability (SAT), Mixed-Integer Programming (MIP), and Constraint Programming (CP).
-Five At-Most-One cardinality encodings---Pairwise, Sequential Counter, Commander, Product, and Binary---are realised in Conjunctive Normal Form and solved with five CDCL engines through PySAT (Glucose~4, CaDiCaL, MiniSat~2.2, Lingeling, and MergeSat~3).
-The same instances are solved with Gurobi MIP, IBM CPLEX (MIP and CP Optimizer), and Google OR-Tools CP-SAT under two formulations (global \texttt{AllDifferent} and a 2D Boolean matrix).
-Every extracted placement is checked by a validator that does not reuse solver constraints.
-Five experiments (A--E) were executed on one workstation with a 60-second requested time limit.
-The measurements show that encoding compactness and solver heuristics jointly dominate SAT runtime; that MergeSat~3, MiniSat~2.2, and Lingeling substantially outperform Glucose~4 on Sequential Counter formulas; that restricted academic licences cap Gurobi MIP at $N\le 44$ and CPLEX MIP at $N\le 31$; and that CP-SAT scales further than SAT Sequential Counter and licence-limited MIP, solving $N=200$ in about 15~seconds while $N=300$ and $N=500$ time out under the same budget.
-Source code, tests, raw CSV logs, and figures are published at \url{https://github.com/YwliF/BTL_01}.
-\end{abstract}
+\begin{center}
+    \vspace*{0.8cm}
 
-\begin{highlights}
-\item Five SAT cardinality encodings and four solver paradigms are implemented and independently cross-validated for $N$-Queens.
-\item Experiments A--E report formula size, runtime, licence limits, scalability, and seed stability from raw CSV logs, without fabricated timings.
-\item Commander and Binary encodings, together with MergeSat, Lingeling, and MiniSat, are the strongest SAT configurations in this study.
-\item Under a 60-second limit, CP-SAT is the most scalable paradigm; Sequential Counter SAT times out at $N\ge 200$ on Glucose~4.
-\item All code and experimental artefacts are archived at \url{https://github.com/YwliF/BTL_01} (Data Availability).
-\end{highlights}
+    {\color{TitleBlue}\fontsize{23}{27}\selectfont
+    \textbf{Discrete Optimization}\par}
+
+    \vspace{0.12cm}
+
+    {\color{TitleBlue}\fontsize{17}{20}\selectfont
+    \textbf{SAT Solving for the N-Queens Problem}\par}
+
+    {\color{TitleBlue}\fontsize{13}{16}\selectfont
+    -- Project Report --\par}
+
+    \vspace{0.55cm}
+\end{center}
+
+\noindent
+\begin{tabularx}{\textwidth}{
+    |>{\raggedright\arraybackslash
+    \color{TitleBlue}\bfseries}p{0.32\textwidth}
+    |>{\raggedright\arraybackslash
+    \color{TextBlue}}X|
+}
+\hline
+
+\rowcolor{RowGray}
+Project ID: & NQ-SAT-01 \\
+\hline
+
+Project Type: & Large Assignment \\
+\hline
+
+Keywords: &
+N-Queens Problem, SAT Solver, Boolean Variables,
+Logical Constraints, Discrete Optimization. \\
+\hline
+
+Author: & Nguyen Viet Nhuong \\
+\hline
+
+Problem Statement: &
+Place $N$ queens on an $N \times N$ chessboard
+so that no two queens attack each other. \\
+\hline
+
+Methodology: &
+Encode the constraints as a Boolean formula and use
+a SAT solver to find a valid configuration. \\
+\hline
+
+Abstract: &
+This project applies SAT solving to the N-Queens
+problem by constructing Boolean variables and logical
+constraints, then evaluating the solver's ability
+to find valid solutions. \\
+\hline
+
+GitHub Repository: &
+\href{https://github.com/YwliF/BTL_01}
+{\textcolor{TextBlue}{github.com/YwliF/BTL\_01}} \\
+\hline
+
+\end{tabularx}
+
+% The custom cover is unnumbered; restart numbering on the next page.
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
 
 \begin{keywords}
 $N$-Queens \sep Boolean Satisfiability (SAT) \sep Cardinality encodings \sep Mixed-Integer Programming \sep Constraint Programming \sep PySAT \sep Gurobi \sep CP-SAT \sep Reproducibility
 \end{keywords}
 
 \maketitle
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage\ / \pageref{LastPage}}
+\thispagestyle{fancy}
 
 \section{Introduction}
 \label{sec:intro}
@@ -88,7 +155,7 @@ The scientific questions are:
 \begin{enumerate}
     \item How do five standard At-Most-One (AMO) encodings change CNF size, auxiliary variables, and SAT search time?
     \item How do five CDCL engines behave on an identical Sequential Counter formula?
-    \item How do SAT, Gurobi MIP, CPLEX, and CP-SAT compare when academic licence limits and a 60-second cutoff are respected rather than assumed away?
+    \item How do SAT, Gurobi MIP, CPLEX, and CP-SAT compare under the available academic/community licenses and a 60-second cutoff?
     \item Which paradigm remains practical as $N$ grows from recreational boards to $N=500$?
 \end{enumerate}
 
@@ -263,8 +330,8 @@ Binary & $\lceil\log_2 k\rceil$ & $k\lceil\log_2 k\rceil$ & No \\
 
 \subsection{Gurobi and CPLEX MIP}
 The MIP is $\min 0$ subject to~\eqref{eq:row}--\eqref{eq:adiag} on $N^2$ binaries, giving $6N-6$ linear constraints.
-Academic Gurobi in size-limited mode rejects models with more than 2000 variables, i.e.\ $N\ge 45$.
-CPLEX Community Edition rejects more than 1000 variables, i.e.\ $N\ge 32$.
+Gurobi was run with the authenticated WLS academic license (Gurobi~13.0.3), which accepted all tested models through $N=500$ (250{,}000 binaries); no Gurobi size-limit status occurred in the refreshed campaign.
+CPLEX Community Edition rejects models over its 1000-variable MIP cap, beginning at $N=32$ for this formulation.
 The runner records \texttt{LICENSE\_LIMIT} rather than inventing a runtime, and stores the vendor error string in the CSV.
 
 \subsection{CP-SAT}
@@ -313,7 +380,7 @@ Licence failures and cutoffs are first-class outcomes.
 AMD Ryzen~5 7535HS (6 cores / 12 threads), 16~GB DDR5, Windows~11 Home 64-bit, Python~3.13.15.
 
 \paragraph{Libraries.}
-PySAT 1.9.dev16, OR-Tools 9.15.6755, Gurobi 13.0.3 (size-limited academic), CPLEX 22.2.0.1 Community, NumPy 2.5.4, Pandas 3.0.6, Matplotlib 3.11.2.
+PySAT 1.9.dev16, OR-Tools 9.15.6755, Gurobi 13.0.3 (authenticated academic WLS), CPLEX 22.2.0.1 Community, NumPy 2.5.4, Pandas 3.0.6, Matplotlib 3.11.2.
 
 \paragraph{Time limit.}
 60 seconds of requested solver time unless a licence error occurs first.
@@ -324,12 +391,12 @@ The full publication mode of \texttt{scripts/run\_benchmarks.py} is:
 \begin{description}
     \item[A] Five encodings $\times$ Glucose~4, $N\in\{4,8,12,\dots,32,40,48,64,80,100\}$.
     \item[B] Sequential Counter $\times$ five SAT engines, $N\in\{8,16,24,32,48,64,80,100\}$.
-    \item[C] SAT (Glucose~4 + Sequential Counter), Gurobi MIP, CP-SAT (both formulations), CPLEX MIP, CPLEX CP, $N$ up to 100, including the licence boundaries $N=32$ and $N=44$.
-    \item[D] Scalability $N\in\{100,150,200,300,500\}$ for CP-SAT AllDifferent, SAT Sequential Counter, and Gurobi.
+    \item[C] SAT (Glucose~4 + Sequential Counter), Gurobi MIP, CP-SAT (both formulations), CPLEX MIP, CPLEX CP, $N$ up to 100.
+    \item[D] Scalability $N\in\{100,150,200,300,500\}$ for CP-SAT AllDifferent, SAT Sequential Counter, and Gurobi, each with a requested 60-second limit.
     \item[E] Five seeds at $N=32$ for Pairwise, Sequential Counter, Product, and CP-SAT AllDifferent.
 \end{description}
 
-All numbers in Section~\ref{sec:results} are taken from \texttt{results/raw/exp\_*.csv} produced on 18~October~2026.
+All numbers in Section~\ref{sec:results} are taken from \texttt{results/raw/exp\_*.csv} produced on 19~October~2026 using the authenticated Gurobi academic WLS license.
 
 \section{Empirical findings}
 \label{sec:results}
@@ -346,35 +413,35 @@ All runs in this table returned validator-approved solutions within 60~s.
 \toprule
 $N$ & Encoding & Aux.\ vars & Clauses & Build (s) & Solve (s) & Total (s) \\
 \midrule
-16 & Pairwise & 0 & 6{,}352 & 0.0011 & 0.0103 & 0.0114 \\
-16 & Seq.\ Counter & 930 & 2{,}732 & 0.0004 & 0.0389 & 0.0393 \\
-16 & Commander & 426 & 3{,}052 & 0.0008 & 0.0237 & 0.0244 \\
-16 & Product & 580 & 2{,}820 & 0.0006 & 0.1306 & 0.1312 \\
-16 & Binary & 316 & 3{,}928 & 0.0008 & 0.0987 & 0.0994 \\
+16 & Pairwise & 0 & 6{,}352 & 0.0010 & 0.0112 & 0.0122 \\
+16 & Seq.\ Counter & 930 & 2{,}732 & 0.0004 & 0.0458 & 0.0462 \\
+16 & Commander & 426 & 3{,}052 & 0.0008 & 0.0255 & 0.0263 \\
+16 & Product & 580 & 2{,}820 & 0.0009 & 0.1395 & 0.1404 \\
+16 & Binary & 316 & 3{,}928 & 0.0009 & 0.0977 & 0.0985 \\
 \midrule
-32 & Pairwise & 0 & 52{,}640 & 0.0074 & 0.0213 & 0.0287 \\
-32 & Seq.\ Counter & 3{,}906 & 11{,}596 & 0.0018 & 0.2280 & 0.2298 \\
-32 & Commander & 1{,}932 & 13{,}290 & 0.0038 & 0.0571 & 0.0609 \\
-32 & Product & 1{,}744 & 11{,}892 & 0.0024 & 10.7208 & 10.7232 \\
-32 & Binary & 826 & 19{,}800 & 0.0042 & 0.0246 & 0.0288 \\
+32 & Pairwise & 0 & 52{,}640 & 0.0076 & 0.0223 & 0.0299 \\
+32 & Seq.\ Counter & 3{,}906 & 11{,}596 & 0.0018 & 0.2248 & 0.2267 \\
+32 & Commander & 1{,}932 & 13{,}290 & 0.0042 & 0.0577 & 0.0619 \\
+32 & Product & 1{,}744 & 11{,}892 & 0.0025 & 10.5965 & 10.5990 \\
+32 & Binary & 826 & 19{,}800 & 0.0042 & 0.0248 & 0.0290 \\
 \midrule
-64 & Pairwise & 0 & 428{,}864 & 0.1478 & 0.1404 & 0.2883 \\
-64 & Seq.\ Counter & 16{,}002 & 47{,}756 & 0.0072 & 3.1632 & 3.1704 \\
-64 & Commander & 7{,}862 & 55{,}022 & 0.0138 & 0.2759 & 0.2897 \\
-64 & Product & 4{,}844 & 47{,}412 & 0.0084 & 17.9881 & 17.9965 \\
-64 & Binary & 2{,}040 & 95{,}576 & 0.0236 & 0.0510 & 0.0747 \\
+64 & Pairwise & 0 & 428{,}864 & 0.1485 & 0.1447 & 0.2932 \\
+64 & Seq.\ Counter & 16{,}002 & 47{,}756 & 0.0082 & 3.1179 & 3.1261 \\
+64 & Commander & 7{,}862 & 55{,}022 & 0.0147 & 0.2747 & 0.2894 \\
+64 & Product & 4{,}844 & 47{,}412 & 0.0100 & 18.1660 & 18.1760 \\
+64 & Binary & 2{,}040 & 95{,}576 & 0.0188 & 0.0527 & 0.0715 \\
 \midrule
-80 & Pairwise & 0 & 840{,}720 & 0.3082 & 0.2739 & 0.5821 \\
-80 & Seq.\ Counter & 25{,}122 & 75{,}052 & 0.0130 & 7.8080 & 7.8209 \\
-80 & Commander & 12{,}382 & 86{,}646 & 0.0227 & 0.2323 & 0.2551 \\
-80 & Product & 6{,}792 & 74{,}548 & 0.0407 & 21.2290 & 21.2697 \\
-80 & Binary & 2{,}838 & 168{,}184 & 0.0271 & 0.0723 & 0.0994 \\
+80 & Pairwise & 0 & 840{,}720 & 0.3701 & 0.3508 & 0.7209 \\
+80 & Seq.\ Counter & 25{,}122 & 75{,}052 & 0.0116 & 7.6466 & 7.6582 \\
+80 & Commander & 12{,}382 & 86{,}646 & 0.0283 & 0.2273 & 0.2556 \\
+80 & Product & 6{,}792 & 74{,}548 & 0.0408 & 20.5567 & 20.5975 \\
+80 & Binary & 2{,}838 & 168{,}184 & 0.0279 & 0.0731 & 0.1010 \\
 \midrule
-100 & Pairwise & 0 & 1{,}646{,}900 & 0.6342 & 0.5389 & 1.1731 \\
-100 & Seq.\ Counter & 39{,}402 & 117{,}812 & 0.0182 & 37.8790 & 37.8971 \\
-100 & Commander & 19{,}502 & 136{,}560 & 0.0716 & 0.1234 & 0.1950 \\
-100 & Product & 9{,}464 & 116{,}636 & 0.0226 & 18.5322 & 18.5548 \\
-100 & Binary & 3{,}678 & 269{,}024 & 0.0799 & 0.1193 & 0.1992 \\
+100 & Pairwise & 0 & 1{,}646{,}900 & 0.6281 & 0.5777 & 1.2057 \\
+100 & Seq.\ Counter & 39{,}402 & 117{,}812 & 0.0219 & 40.6263 & 40.6482 \\
+100 & Commander & 19{,}502 & 136{,}560 & 0.0354 & 0.1205 & 0.1560 \\
+100 & Product & 9{,}464 & 116{,}636 & 0.0453 & 20.5590 & 20.6043 \\
+100 & Binary & 3{,}678 & 269{,}024 & 0.1825 & 0.1345 & 0.3170 \\
 \bottomrule
 \end{tabular*}
 \end{table*}
@@ -406,12 +473,11 @@ $N$ & Encoding & Aux.\ vars & Clauses & Build (s) & Solve (s) & Total (s) \\
 Observations:
 \begin{enumerate}
     \item Pairwise matches theory: $1.65\times 10^6$ clauses at $N=100$, 13.9$\times$ Sequential Counter, and the highest build cost (0.63~s).
-    Search itself stays cheap (0.54~s) because pairwise is strongly propagating.
-    \item Sequential Counter is the most compact in clauses but the slowest encoding on Glucose~4 at $N=100$ (37.9~s solve).
+    Search itself stays cheap (0.58~s) because pairwise is strongly propagating.
+    \item Sequential Counter is the most compact in clauses but the slowest encoding on Glucose~4 at $N=100$ (40.6~s solve).
     Compactness does not automatically yield a good CDCL heuristic landscape.
-    \item Commander and Binary finish $N=100$ in 0.20~s total.
-    They are the practical SAT encodings in this Glucose~4 study.
-    \item Product stays compact but searches poorly (18.6~s at $N=100$; 21.3~s at $N=80$), consistent with weaker unit-propagation strength.
+    \item Commander finishes $N=100$ in 0.16~s and Binary in 0.32~s total; both remain practical encodings in this Glucose~4 study.
+    \item Product stays compact but searches poorly (20.6~s at $N=100$ and $N=80$), consistent with weaker unit-propagation strength.
 \end{enumerate}
 
 \subsection{Experiment B: SAT engines}
@@ -425,11 +491,11 @@ Sequential Counter is held fixed so that engine heuristics are isolated (Figure~
 \toprule
 $N$ & Glucose~4 & CaDiCaL & MiniSat & Lingeling & MergeSat \\
 \midrule
-16 & 0.039 & 0.010 & 0.003 & 0.004 & 0.004 \\
-32 & 0.228 & 0.180 & 0.025 & 0.012 & 0.012 \\
-64 & 3.096 & 0.505 & 0.069 & 0.063 & 0.053 \\
-80 & 7.447 & 2.468 & 0.143 & 0.054 & 0.087 \\
-100 & 42.903 & 4.128 & 0.338 & 0.362 & 0.189 \\
+16 & 0.041 & 0.010 & 0.003 & 0.004 & 0.004 \\
+32 & 0.232 & 0.179 & 0.028 & 0.013 & 0.016 \\
+64 & 3.347 & 0.552 & 0.067 & 0.041 & 0.085 \\
+80 & 8.791 & 3.051 & 0.147 & 0.083 & 0.106 \\
+100 & 41.603 & 3.062 & 0.160 & 0.265 & 0.144 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -441,7 +507,7 @@ $N$ & Glucose~4 & CaDiCaL & MiniSat & Lingeling & MergeSat \\
     \label{fig:sat_solvers}
 \end{figure}
 
-At $N=100$, MergeSat~3 is fastest (0.19~s), MiniSat~2.2 and Lingeling are close (0.34--0.36~s), CaDiCaL needs 4.13~s, and Glucose~4 needs 42.9~s---more than $200\times$ MergeSat.
+At $N=100$, MergeSat~3 is fastest (0.14~s), followed by MiniSat~2.2 (0.16~s), Lingeling (0.27~s), CaDiCaL (3.06~s), and Glucose~4 (41.60~s).
 The same CNF is therefore not a single ``SAT runtime''; it is an interaction between encoding and restart/clause-management policy.
 
 \subsection{Experiment C: paradigms}
@@ -449,21 +515,21 @@ Table~\ref{tab:paradigm_data} and Figure~\ref{fig:paradigm_comp} compare SAT Seq
 
 \begin{table*}[t]
 \centering
-\caption{Total wall-clock time (s). ``Lic.'' denotes a documented academic/community size limit, not a timeout.}
+\caption{Total wall-clock time (s). ``Lic.'' denotes the CPLEX Community Edition size limit, not a timeout. Gurobi used the authenticated WLS academic license.}
 \label{tab:paradigm_data}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrrrrrr@{}}
 \toprule
 $N$ & SAT Seq. & Gurobi & CP-SAT AD & CP-SAT 2D & CPLEX MIP & CPLEX CP \\
 \midrule
-8 & 0.001 & 0.003 & 0.023 & 0.014 & 0.012 & 0.035 \\
-16 & 0.055 & 0.030 & 0.040 & 0.030 & 0.021 & 0.041 \\
-28 & 0.037 & 0.009 & 0.066 & 0.045 & 0.036 & 0.031 \\
-32 & 0.286 & 0.026 & 0.060 & 0.044 & Lic. & 0.028 \\
-44 & 0.277 & 0.055 & 0.129 & 0.122 & Lic. & 0.034 \\
-48 & 0.206 & Lic. & 0.150 & 0.096 & Lic. & 0.029 \\
-64 & 3.294 & Lic. & 0.294 & 0.216 & Lic. & 0.036 \\
-80 & 8.858 & Lic. & 0.525 & 0.321 & Lic. & 0.033 \\
-100 & 46.588 & Lic. & 0.765 & 0.507 & Lic. & 0.032 \\
+8 & 0.001 & 0.013 & 0.017 & 0.014 & 0.011 & 0.029 \\
+16 & 0.041 & 0.035 & 0.032 & 0.030 & 0.017 & 0.033 \\
+28 & 0.033 & 0.010 & 0.064 & 0.044 & 0.033 & 0.031 \\
+32 & 0.257 & 0.025 & 0.081 & 0.046 & Lic. & 0.028 \\
+44 & 0.262 & 0.053 & 0.126 & 0.077 & Lic. & 0.029 \\
+48 & 0.210 & 0.015 & 0.175 & 0.107 & Lic. & 0.035 \\
+64 & 3.272 & 0.022 & 0.265 & 0.175 & Lic. & 0.033 \\
+80 & 8.659 & 0.056 & 0.607 & 0.370 & Lic. & 0.042 \\
+100 & 42.707 & 0.067 & 0.770 & 0.511 & Lic. & 0.053 \\
 \bottomrule
 \end{tabular*}
 \end{table*}
@@ -476,8 +542,7 @@ $N$ & SAT Seq. & Gurobi & CP-SAT AD & CP-SAT 2D & CPLEX MIP & CPLEX CP \\
 \end{figure}
 
 \begin{enumerate}
-    \item Gurobi finds feasible boards in well under 0.06~s up to $N=44$ ($1936$ binaries).
-    At $N=48$ ($2304$ variables) the log is \texttt{Model too large for size-limited license}.
+    \item Authenticated Gurobi WLS solves every tested board through $N=100$; the $N=100$ model has 10{,}000 binaries and takes 0.067~s total.
     \item CPLEX MIP hits the promotional 1000-variable cap at $N=32$ (\texttt{1024 vars, 186 consts, CPLEX code=1016}).
     CPLEX CP Optimizer continues and remains near 0.03~s through $N=100$ in this feasibility setting.
     \item Both CP-SAT formulations beat Glucose~4 Sequential Counter by more than an order of magnitude at $N=100$.
@@ -495,15 +560,15 @@ Figure~\ref{fig:scalability} and Table~\ref{tab:scale} stress $N\ge 100$ under t
 \toprule
 $N$ & CP-SAT AllDiff & SAT Seq.\ (Glucose~4) & Gurobi MIP \\
 \midrule
-100 & 0.78 (OK) & 42.59 (OK) & Licence limit \\
-150 & 8.51 (OK) & 55.21 (OK) & Licence limit \\
-200 & 14.63 (OK) & timeout$^\ast$ & Licence limit \\
-300 & timeout (60.1) & timeout$^\ast$ & Licence limit \\
-500 & timeout (60.1) & timeout$^\ast$ & Licence limit \\
+100 & 0.82 (OK) & 51.43 (OK) & 0.14 (OK) \\
+150 & 10.10 (OK) & timeout$^\ast$ & 0.11 (OK) \\
+200 & 14.98 (OK) & timeout$^\ast$ & 0.63 (OK) \\
+300 & timeout (60.1) & timeout$^\ast$ & 0.72 (OK) \\
+500 & timeout (60.1) & timeout$^\ast$ & 2.14 (OK) \\
 \bottomrule
 \end{tabular*}
 \end{table}
-{\footnotesize $^\ast$SAT interrupt is sluggish: logged totals 88~s ($N=200$), 185~s ($N=300$), 449~s ($N=500)$, all labelled \texttt{TIMEOUT}.}
+{\footnotesize $^\ast$SAT interrupt is sluggish: logged totals are 94~s ($N=200$), 213~s ($N=300$), and 463~s ($N=500$), all labelled \texttt{TIMEOUT}; $N=150$ also times out at 61~s.}
 
 \begin{figure}[t]
     \centering
@@ -512,10 +577,10 @@ $N$ & CP-SAT AllDiff & SAT Seq.\ (Glucose~4) & Gurobi MIP \\
     \label{fig:scalability}
 \end{figure}
 
-CP-SAT AllDifferent is the only method that still solves $N=200$ inside the intended budget (14.6~s).
-At $N=300$ and $N=500$ it hits the 60-second cap.
-SAT Sequential Counter already times out at $N=200$, where the formula has $198{,}802$ variables and $475{,}612$ clauses; at $N=500$ it has $1{,}247{,}002$ variables and $2{,}989{,}012$ clauses.
-These measurements replace any claim that $N=500$ is routinely solved in a few seconds on this hardware and timeout.
+Gurobi with the authenticated WLS academic license solves every tested size through $N=500$; at the largest size the model has 250{,}000 binary variables and completes in 2.14~s total.
+CP-SAT AllDifferent solves $N=200$ in 14.98~s but reaches the 60-second cap at $N=300$ and $N=500$.
+SAT Sequential Counter times out from $N=150$: its $N=200$ formula has $198{,}802$ variables and $475{,}612$ clauses, while at $N=500$ it has $1{,}247{,}002$ variables and $2{,}989{,}012$ clauses.
+The SAT interrupt is sluggish on large instances, so the observed wall times (94--463~s) exceed the requested 60~s limit even though each run is labelled \texttt{TIMEOUT}.
 
 \begin{figure}[t]
     \centering
@@ -525,10 +590,10 @@ These measurements replace any claim that $N=500$ is routinely solved in a few s
 \end{figure}
 
 \subsection{Experiment E: seed stability}
-Five seeds at $N=32$ give Sequential Counter totals with mean $0.230$~s and sample standard deviation $0.019$~s.
-Product remains slow and stable (mean $9.97$~s, sd $0.31$~s).
-Pairwise stays fast (mean $0.037$~s).
-CP-SAT AllDifferent has mean $0.081$~s and sd $0.016$~s.
+Five seeds at $N=32$ give Sequential Counter totals with mean $0.237$~s and sample standard deviation $0.010$~s.
+Product remains slower and more variable (mean $12.210$~s, sd $0.870$~s).
+Pairwise stays fast (mean $0.040$~s).
+CP-SAT AllDifferent has mean $0.071$~s and sd $0.009$~s.
 Ranking of methods is therefore not an artefact of a single unlucky seed.
 Table~\ref{tab:stability} lists the raw totals.
 
@@ -540,11 +605,11 @@ Table~\ref{tab:stability} lists the raw totals.
 \toprule
 Seed & Pairwise & Seq.\ Counter & Product & CP-SAT AD \\
 \midrule
-1 & 0.033 & 0.225 & 9.780 & 0.098 \\
-2 & 0.051 & 0.221 & 9.695 & 0.070 \\
-3 & 0.029 & 0.222 & 9.943 & 0.091 \\
-4 & 0.033 & 0.219 & 9.970 & 0.088 \\
-5 & 0.037 & 0.265 & 10.474 & 0.059 \\
+1 & 0.033 & 0.235 & 12.139 & 0.078 \\
+2 & 0.039 & 0.253 & 13.725 & 0.058 \\
+3 & 0.031 & 0.227 & 11.771 & 0.081 \\
+4 & 0.063 & 0.236 & 11.575 & 0.071 \\
+5 & 0.033 & 0.234 & 11.844 & 0.069 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -557,10 +622,11 @@ On Glucose~4, Commander/Binary beat Sequential Counter even though Sequential Co
 On MergeSat, Lingeling, and MiniSat, the same Sequential Counter formula becomes easy.
 Reporting ``SAT is slow on $N$-Queens'' without naming encoding and engine would be misleading.
 
-\paragraph{Why CP scales further here.}
+\paragraph{How the authenticated Gurobi run changes the scalability result.}
 The 1D model uses $N$ domain variables and matching-based pruning~\cite{regin1994filtering}.
 SAT Sequential Counter at $N=200$ already allocates $198{,}802$ variables and $475{,}612$ clauses, and Glucose~4 cannot finish within 60~s.
-MIP would likely remain competitive with an unrestricted licence, but that is outside the licensed configuration used in this assignment.
+The authenticated Gurobi academic WLS license accepted models through $N=500$ and solved the 250{,}000-binary instance in 2.14~s.
+This result applies to the active licensed configuration and measured feasibility model; it should not be generalised to other academic license types or machines.
 
 \paragraph{Feasibility, not optimisation.}
 $N$-Queens has a constant objective.
@@ -568,15 +634,16 @@ MIP's usual strength---tight relaxations for a non-trivial objective---is only p
 The comparison is still fair as a CSP, which is the problem we actually implemented.
 
 \paragraph{Honesty about licences.}
-\texttt{LICENSE\_LIMIT} is a socio-technical constraint, not an algorithmic proof that MIP fails.
-The logs keep the Gurobi and CPLEX error strings so that reviewers can audit the claim.
+The refreshed run authenticated Gurobi through WLS and encountered no Gurobi size limit through $N=500$.
+The CPLEX Community Edition MIP cap remains a licensing constraint, not an algorithmic proof that MIP fails.
+The logs keep vendor error strings so that reviewers can audit the CPLEX limit.
 
 \section{Threats to validity}
 \label{sec:threats}
 
 \begin{itemize}
     \item \textbf{Single machine, single timeout.} Rankings may change on a server-class CPU, with more threads, or with a one-hour cutoff (Experiment D would likely move).
-    \item \textbf{Licence envelope.} Gurobi and CPLEX MIP are not evaluated beyond their academic/community size caps.
+    \item \textbf{Licence envelope.} The Gurobi results depend on the authenticated WLS academic license available during this run; another academic license type may impose a model-size cap. CPLEX MIP remains subject to its Community Edition cap.
     \item \textbf{SAT interrupt.} PySAT/Glucose did not always stop at 60~s on huge formulas; TIMEOUT is still the correct scientific label, but wall-clock is larger than the requested budget.
     \item \textbf{No symmetry breaking} (lex-leader / orbit restrictions). Adding it could change SAT/CP gaps.
     \item \textbf{Existence only.} We do not count all solutions or solve $N$-Queens completion~\cite{gent2017nqueens}.
@@ -606,10 +673,10 @@ Reproduction: install \texttt{requirements.txt}, optionally configure Gurobi WLS
 \label{sec:conclusion}
 
 This BTL~1 report implemented exact $N$-Queens solving across SAT, MIP, and CP, compared five cardinality encodings and five CDCL engines, and published the measurements.
-On the recorded data, Commander and Binary encodings are the robust SAT choices for Glucose~4; MergeSat~3, MiniSat~2.2, and Lingeling dominate Glucose~4 on Sequential Counter; licence-limited Gurobi/CPLEX MIP are excellent until their size caps; and CP-SAT is the method that still solves $N=200$ within 60~seconds, while $N=300$ and $N=500$ remain open under that budget.
+On the recorded data, Commander and Binary encodings are the robust SAT choices for Glucose~4; MergeSat~3, MiniSat~2.2, and Lingeling dominate Glucose~4 on Sequential Counter; authenticated Gurobi solves through $N=500$ in 2.14~s, while CP-SAT solves through $N=200$ and times out at $N=300$ and $N=500$; CPLEX MIP remains limited by its Community Edition cap.
 All code and CSV results are available at \url{https://github.com/YwliF/BTL_01}.
 
-Future work includes symmetry breaking, a SAT portfolio that pairs Sequential Counter with MergeSat rather than Glucose~4, unrestricted-licence MIP, and a longer timeout study of $N\ge 300$.
+Future work includes symmetry breaking, a SAT portfolio that pairs Sequential Counter with MergeSat rather than Glucose~4, and repeating the MIP comparison across additional license configurations and hardware.
 
 \printcredits
 

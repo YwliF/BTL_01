@@ -1,16 +1,16 @@
 experiment_id,timestamp,n,method,solver_name,solver_version,encoding,seed,status,num_variables,num_auxiliary_variables,num_clauses,num_constraints,model_build_time_seconds,solve_time_seconds,total_time_seconds,memory_mb,timeout_seconds,solution_valid,error_message
-exp_d_scalability,2026-10-18T13:11:04.921078,100,CP,cp-sat,ortools-9.15,alldifferent,0,OPTIMAL,100,,,3,0.001309,0.782050,0.783359,149.16,60.0,True,
-exp_d_scalability,2026-10-18T13:11:05.705622,100,SAT,glucose4,pysat-1.9,seqcounter,0,SATISFIABLE,49402,39402,117812,,0.058067,42.534765,42.592832,144.41,60.0,True,
-exp_d_scalability,2026-10-18T13:11:48.311216,100,MIP,gurobi,gurobi-13.0.3,N/A,0,LICENSE_LIMIT,10000,,,594,0.041639,0.000080,0.041719,148.39,60.0,,Gurobi optimize error: Model too large for size-limited license; visit https://gurobi.com/unrestricted for more information
-exp_d_scalability,2026-10-18T13:11:48.356551,150,CP,cp-sat,ortools-9.15,alldifferent,0,OPTIMAL,150,,,3,0.001791,8.508781,8.510572,300.98,60.0,True,
-exp_d_scalability,2026-10-18T13:11:56.868346,150,SAT,glucose4,pysat-1.9,seqcounter,0,SATISFIABLE,111602,89102,266712,,0.117646,55.088239,55.205885,301.00,60.0,True,
-exp_d_scalability,2026-10-18T13:12:52.100113,150,MIP,gurobi,gurobi-13.0.3,N/A,0,LICENSE_LIMIT,22500,,,894,0.090831,0.000099,0.090930,301.11,60.0,,Gurobi optimize error: Model too large for size-limited license; visit https://gurobi.com/unrestricted for more information
-exp_d_scalability,2026-10-18T13:12:52.197679,200,CP,cp-sat,ortools-9.15,alldifferent,0,OPTIMAL,200,,,3,0.002215,14.623830,14.626044,386.30,60.0,True,
-exp_d_scalability,2026-10-18T13:13:06.825396,200,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,198802,158802,475612,,0.165011,88.098741,88.263751,378.96,60.0,,Time limit exceeded
-exp_d_scalability,2026-10-18T13:14:35.121622,200,MIP,gurobi,gurobi-13.0.3,N/A,0,LICENSE_LIMIT,40000,,,1194,0.166837,0.000075,0.166912,378.34,60.0,,Gurobi optimize error: Model too large for size-limited license; visit https://gurobi.com/unrestricted for more information
-exp_d_scalability,2026-10-18T13:14:35.298726,300,CP,cp-sat,ortools-9.15,alldifferent,0,TIMEOUT,300,,,3,0.003151,60.083583,60.086734,336.48,60.0,,CP-SAT time limit reached
-exp_d_scalability,2026-10-18T13:15:35.386875,300,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,448202,358202,1073412,,0.488518,184.370720,184.859238,338.30,60.0,,Time limit exceeded
-exp_d_scalability,2026-10-18T13:18:40.327749,300,MIP,gurobi,gurobi-13.0.3,N/A,0,LICENSE_LIMIT,90000,,,1794,0.411591,0.000083,0.411674,339.61,60.0,,Gurobi optimize error: Model too large for size-limited license; visit https://gurobi.com/unrestricted for more information
-exp_d_scalability,2026-10-18T13:18:40.760630,500,CP,cp-sat,ortools-9.15,alldifferent,0,TIMEOUT,500,,,3,0.005115,60.099011,60.104126,160.25,60.0,,CP-SAT time limit reached
-exp_d_scalability,2026-10-18T13:19:40.865795,500,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,1247002,997002,2989012,,1.524097,447.217966,448.742063,153.28,60.0,,Time limit exceeded
-exp_d_scalability,2026-10-18T13:27:09.934666,500,MIP,gurobi,gurobi-13.0.3,N/A,0,LICENSE_LIMIT,250000,,,2994,1.383099,0.000644,1.383743,217.34,60.0,,Gurobi optimize error: Model too large for size-limited license; visit https://gurobi.com/unrestricted for more information
+exp_d_scalability,2026-10-19T20:03:14.356958,100,CP,cp-sat,ortools-9.15,alldifferent,0,OPTIMAL,100,,,3,0.001788,0.821368,0.823156,152.61,60.0,True,
+exp_d_scalability,2026-10-19T20:03:15.181610,100,SAT,glucose4,pysat-1.9,seqcounter,0,SATISFIABLE,49402,39402,117812,,0.062762,51.372178,51.434941,164.70,60.0,True,
+exp_d_scalability,2026-10-19T20:04:06.637765,100,MIP,gurobi,gurobi-13.0.3,N/A,0,OPTIMAL,10000,,,594,0.133748,0.006144,0.139892,166.96,60.0,True,
+exp_d_scalability,2026-10-19T20:04:06.807885,150,CP,cp-sat,ortools-9.15,alldifferent,0,OPTIMAL,150,,,3,0.003422,10.099285,10.102707,290.23,60.0,True,
+exp_d_scalability,2026-10-19T20:04:16.912447,150,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,111602,89102,266712,,0.100735,61.046234,61.146968,288.41,60.0,,Time limit exceeded
+exp_d_scalability,2026-10-19T20:05:18.080119,150,MIP,gurobi,gurobi-13.0.3,N/A,0,OPTIMAL,22500,,,894,0.105660,0.008059,0.113719,288.58,60.0,True,
+exp_d_scalability,2026-10-19T20:05:18.234191,200,CP,cp-sat,ortools-9.15,alldifferent,0,OPTIMAL,200,,,3,0.002968,14.979579,14.982547,360.21,60.0,True,
+exp_d_scalability,2026-10-19T20:05:33.218152,200,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,198802,158802,475612,,0.168064,94.391415,94.559479,360.19,60.0,,Time limit exceeded
+exp_d_scalability,2026-10-19T20:07:07.813906,200,MIP,gurobi,gurobi-13.0.3,N/A,0,OPTIMAL,40000,,,1194,0.186935,0.445235,0.632169,360.48,60.0,True,
+exp_d_scalability,2026-10-19T20:07:08.501573,300,CP,cp-sat,ortools-9.15,alldifferent,0,TIMEOUT,300,,,3,0.003302,60.079759,60.083061,317.24,60.0,,CP-SAT time limit reached
+exp_d_scalability,2026-10-19T20:08:08.586751,300,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,448202,358202,1073412,,0.556303,212.314058,212.870361,318.02,60.0,,Time limit exceeded
+exp_d_scalability,2026-10-19T20:11:41.558679,300,MIP,gurobi,gurobi-13.0.3,N/A,0,OPTIMAL,90000,,,1794,0.689700,0.028222,0.717922,317.90,60.0,True,
+exp_d_scalability,2026-10-19T20:11:42.412360,500,CP,cp-sat,ortools-9.15,alldifferent,0,TIMEOUT,500,,,3,0.005364,60.104508,60.109872,148.53,60.0,,CP-SAT time limit reached
+exp_d_scalability,2026-10-19T20:12:42.523753,500,SAT,glucose4,pysat-1.9,seqcounter,0,TIMEOUT,1247002,997002,2989012,,1.566155,461.141763,462.707918,240.48,60.0,,Time limit exceeded
+exp_d_scalability,2026-10-19T20:20:25.535504,500,MIP,gurobi,gurobi-13.0.3,N/A,0,OPTIMAL,250000,,,2994,2.056666,0.082209,2.138875,250.57,60.0,True,
