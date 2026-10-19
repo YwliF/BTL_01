@@ -1,0 +1,9 @@
+The $N$-Queens problem asks for a placement of $N$ queens on an $N\times N$ board such that no two queens share a row, column, or diagonal.
+Although a solution exists for every $N\ge 4$, the problem remains a demanding laboratory for exact combinatorial solvers: encodings grow rapidly, search heuristics interact with formula structure, and licence restrictions on commercial MIP engines change what can be measured on a student workstation.
+This report presents a complete, independently implemented exact-solving pipeline that translates $N$-Queens into Boolean Satisfiability (SAT), Mixed-Integer Programming (MIP), and Constraint Programming (CP).
+Five At-Most-One cardinality encodings---Pairwise, Sequential Counter, Commander, Product, and Binary---are realised in Conjunctive Normal Form and solved with five CDCL engines through PySAT (Glucose~4, CaDiCaL, MiniSat~2.2, Lingeling, and MergeSat~3).
+The same instances are solved with Gurobi MIP, IBM CPLEX (MIP and CP Optimizer), and Google OR-Tools CP-SAT under two formulations (global \texttt{AllDifferent} and a 2D Boolean matrix).
+Every extracted placement is checked by a validator that does not reuse solver constraints.
+Five experiments (A--E) were executed on one workstation with a 60-second requested time limit.
+The measurements show that encoding compactness and solver heuristics jointly dominate SAT runtime; that MergeSat~3, MiniSat~2.2, and Lingeling substantially outperform Glucose~4 on Sequential Counter formulas; that the authenticated Gurobi academic license solves the tested MIP models through $N=500$, whereas CPLEX Community Edition limits its MIP model at $N=32$; and that CP-SAT solves $N=200$ in about 15~seconds but times out at $N=300$ and $N=500$ under the same budget.
+Source code, tests, raw CSV logs, and figures are published at \url{https://github.com/YwliF/BTL_01}.

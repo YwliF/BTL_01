@@ -1,0 +1,9 @@
+
+Gurobi 13.0.3 (win64, gurobi_cl) logging started Mon Oct 19 19:33:22 2026
+
+Set parameter WLSAccessID
+Set parameter WLSSecret
+Set parameter LicenseID to value 2875485
+Set parameter LogFile to value "gurobi.log"
+Using license file C:\Users\gurobi.lic
+Academic license 2875485 - for non-commercial use only - registered to 24___@vnu.edu.vn
